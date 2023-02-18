@@ -124,5 +124,40 @@ e reiniciar de forma automatica toda vez que uma alteração for feita.
   },
 
   
+# Estratégias de acesso ao banco 
+
+## sqlite
+
+- É um banco Sql, um banco relacional, esse tipo de banco de dados é cerca de 90% das 
+aplicações, uma das vantegens de utilizar o sqlite é que não é necessário subir 
+nenhum banco para a máquina, esse banco da para usar sem precisar instalar nada na 
+máquina, todos os dados do sqlite são salvos em arquivos físicos que ficam dentro do 
+projeto. 
+
+- Boa parte das querys que forem serem escritas dentro do sqlite para fazer as buscas
+dentro do banco de dados, é muito semelhante ao Mysql, postgress e qualquer outro 
+banco relacional que utiliza Sql. Isso é interessante por que caso queira migrar 
+para outro banco não será necessário fazer ateração no código pois esta escrito em sql
+
+- Existem formas diferentes de se comunicar com banco de dados, as 3 formas mais 
+comuns são: 
+
+- Drivers Nativos --> São ferramentas, bibliotecas de baixo nível que permitem a 
+a comunicação com o banco de uma maneira não abstrata ou seja ela tem que ser escrita
+de forma bem crua ou seja é o nível mais baixo de se comunicar com banco de dados. 
+
+- Query Builder ----> É uma forma de evitar ter que aprender muito Sql e poder focar
+mais na linguagem que está sendo trabalhada, dentro do Node.js o mais famoso é o 
+Knex.js, um Query Builder é um construtor de Query e ele facilita a escrita do 
+código Sql com código JavaScript, ele mistura código Js com código do banco. Essa 
+Sintaxe de código escrita com Query Builder pode ser aproveitada em qualquer banco 
+que ele suporte.
+
+- Orms --> É uma outra forma que utiliza menos ainda Sql. 
+
+
+
+
+
 
 
