@@ -155,6 +155,65 @@ que ele suporte.
 
 - Orms --> É uma outra forma que utiliza menos ainda Sql. 
 
+# Configurando o Knex 
+
+- podemos acessar a documentação do Knex.js   https://knexjs.org  
+
+- Temos o comando para fazer a instalação rode o comando abaixo: 
+        npm install knex --save  
+
+- Além do knex tesmo algumas opções de drivers dos bancos de dados que queremos 
+como vamos utilizar o sqlite vamos instalar o sqlite3 
+        npm install sqlite3   
+
+- posso resumir tudo com o comando:  npm instal knex sqlite3   
+
+- O proximo passo é criar dentro da pasta src um aqruivo para a minha base de dados 
+database.ts é nesse arquivo que fazemos a conexão com o banco de dados. 
+
+- Eu importo a função knex do proprio knex , eu crio uma constante na qual chamei de 
+knex para chamar minha constante assim eu preciso renomear a importação pois tem 
+também o nome de knex, dentro dessa função eu passo algumas informações obrigatórias 
+como client que é qual banco de dados vou utilizar, outra opção obrigatória é a 
+connection essa propriedade precisa ter informaçoes sobre a nossa conexão 
+informações como host, port, user, senha e o nome do banco de dados. Cada banco vai
+ter uma exigencia especifica para connection o sqlite mesmo só exige o filename que 
+é o nome do arquivo onde o banco de dados será salvo.
+
+- Vou criar uma pasta chamada tmp e dentro dela vou criar meu arquivo app.db, tmp é 
+temporario por que a idéia de utilizar o arquivo app.db é só em ambiente de 
+desenvolvimento, não será utilizado em produção.
+
+import { knex as setupKnex } from "knex";
+
+export const knex = setupKnex({
+    client: 'sqlite',
+    connection: {
+        filename: './tmp/app.db',
+    },
+})
+
+- Para testar se o banco de dados está funcionando eu vou dentro de server e dentro da
+minha rota get, vou transformar ela em uma async e cou criar uma constante tables na 
+quando vou escrever uma query, como ainda não temos uma tabela vamos utilizar uma 
+tabela universal que tem em todos os bancos de dados sqlite que é a sqlite_schema 
+eu vou dá um select * para buscar todos os dados dessa tabela e testar se meu banco 
+está funcionando. 
+
+app.get('/hello', async () => {
+    const tables = await knex('sqlite_schema').select('*')
+
+    return tables 
+}) 
+
+## Git ignore
+
+- Quando se utiliza versionamento com git é legal criar um arquivo chamado 
+.gitignore e posso passar arquivos que serão ignorados na hora de subir o código 
+para o repositório.
+
+
+
 
 
 
