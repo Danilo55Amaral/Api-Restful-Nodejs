@@ -291,6 +291,113 @@ a extension que será usada nas migrations, a outra é o directory  onde quero q
 seja salva as migrations. A pasta tmp foi renomeada para db e vou passar a sua 
 localização para dentro de directory  e salvar dentro dela as migrations. 
 
+# Criando Tabela de transações 
+
+- Uma grande vantagem de se usar o knex é que depois podemos facilmente trocar de 
+banco de dados sem mudar o código, Por isso quando criamos as tabelas no banco de 
+dados utlizamos uma sintaxe especifica do knex para fazer a criação das tabelas, 
+quando criamos a migration o arquivo gerado tem a data mês e hora em seguida do 
+nome da migrate, a migration  já vem com dois metodos up e down.
+
+- up ==> É o que que a migration vai fazer no banco de dados, criar uma tabela ou 
+adicionar um campo , remover uma tabela ou um campo ou qualquer outra coisa do tipo.
+
+- down ==> Esse método deve fazer o oposto que o método up fez, ele serve para 
+quando algo dá errado e for necessário voltar atrás, fazer um ralback. 
+
+- Dentro dessa migration que foi criada no metodo up eu criei uma tabela chamada
+transactions e como sengundo paramtro eu passo uma function essa function recebe 
+um parametro chamado table e ele vai me dar acesso a todos os tipos de colunas 
+que podemos ter em um banco de dados. 
+
+- Não é recomendado utilizar chaves primarias por inteiros, na maioria das aplicações 
+vale mais a pena utilizar uma chave primaria com um valor aleatorio e dificil de 
+ser descoberto por isso utilizamos um campo chamado uuid (universal unique id)  
+dentro eu passo o nome do campo da tabela, será o id e por ser a chave primaria 
+eu devo utilizar o primary(), em seguida criei meu sengundo campo na tabela do 
+tipo text que chamei de title passei o notNullable() para que ele não possa 
+ficar vazio.
+
+export async function up(knex: Knex): Promise<void> {
+    await knex.schema.createTable('transactions', (table) => {
+        table.uuid('id').primary()
+        table.text('title').notNullable()
+    })
+}
+
+- No metodo down eu vou desfazer a minha tabela utilizando um dropTable passando 
+o nome da tabela. 
+
+export async function down(knex: Knex): Promise<void> {
+    await knex.schema.dropTable('transactions')
+}
+
+- Em seguida para executar o código que foi criado no banco de dados rodamos o 
+comando abaixo:
+    npm run knex -- migrate:latest
+
+- Posso validar isso abrindo a rota no navagdor na porta em que o projeto está sendo 
+executado.
+
+## Importante edições em Migrations
+
+- Quando uma migration é enviada para produção ou enviada para o time de dev, ela 
+nunca mais pode ser editada, não tem como editar uma migration, em casos de erro 
+caso a migration já tenha sido enviada, deve ser corrigido ou editado através de 
+uma nova migration.
+
+- Se caso a migration ainda não foi enviada podemos editar executando o comando: 
+        npm run knex -- migrate:rollback  
+- Esse comando defaz a migration que foi executada antes de executar deve parar o 
+servidor. 
+
+- Eu criei mais um campo para a tabela do tipo timestamp com o nome de create_at 
+a função desse campo é anotar a data em que cada registro foi criado, o defaultTo 
+dele vamos utilizar uma função do proprio knex por que a idéia é esse código 
+ficar compativel com qualquer banco de dados, essa função é a fn.now que é uma forma 
+de retornar a data atual. Esse campo não pode ser nulo e por isso passei o notNullable
+
+- Em seguida eu executo  novamente a migration e a tabela vai atualizar com os novos 
+campos. 
+
+- Eu posso ter migrations que adicionam ou alteram um campo, eu criei uma nova migration
+chamada add-session-id-to-transaction note que o nome da migration não é mais um nome
+de criar uma tabela e sim adicionando um campo chamado session id na tabela de 
+transactions.
+
+- Dentro eu vou utilizar o alterTable passando o nome da tabela que quero alterar 
+reebendo table como paramtro na segunda função, dentro eu adicionei um novo campo do 
+tipo uuid dei para esse campo  o  nome de session_idutilizei o metodo after indicar 
+que esse campo fique após o campo que passei dentro de after que foi o id, vale 
+ressaltar que não são todos os bancos que suportam isso, passei também um index() 
+para que ele crie um indice nesse campo da tabela. 
+
+PS -indice é uma forma de informar ao banco de dados que serão feitas muitas buscas 
+em transações especificas de um id de uma sessão, significa que esse campo será muito 
+utilizado e isso deixa a busca muito mais rapida por que o banco de dados vai criar 
+um tipo de cache de qual session_id possue quais transactions. 
+
+- No campo down como eu desfaço o que fiz em up eu apenas dei um dropColumn na coluna 
+que criei. 
+
+export async function up(knex: Knex): Promise<void> {
+    await knex.schema.alterTable('transactions', (table) => {
+        table.uuid('session_id').after('id').index()
+    })
+}
+
+
+export async function down(knex: Knex): Promise<void> {
+    await knex.schema.alterTable('transactions', (table) => {
+        table.dropColumn('session_id')
+    })
+}
+
+- Em seguida rodo novamente o migrate:latest para o código ser executado.
+
+
+
+
 
 
 
