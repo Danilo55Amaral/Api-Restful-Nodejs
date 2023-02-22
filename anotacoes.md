@@ -395,6 +395,49 @@ export async function down(knex: Knex): Promise<void> {
 
 - Em seguida rodo novamente o migrate:latest para o código ser executado.
 
+# Realizando queries com Knex 
+
+- Aqui testamos algumas operações que são feitas em banco de dados dentro do 
+arquivo de server.ts dentro da rota hello eu inserir uma nova transação no 
+banco de dados , eu passo o knex com o nome da tabela e utilizei o metodo 
+insert para fazer uma inserção no banco de dados, dentro desse insert eu passei 
+o id que gera numeros e letras aleatoreas porém eu  posso utilizar o modulo 
+crypto do node passando o metodo randomUUID() isso vai gerar um valor válido 
+para o id, tive que passar um titulo para a transação, e o amount com um valor.
+
+- Antes de retornar transaction eu devo utilizar .returning('*') para que meu banco 
+de dados retorne todas as informações que foram inseridas.
+
+- Eu chamando a rota no navegador posso ver os dados da informação que foi inserida 
+no banco de dados.
+
+app.get('/hello', async () => {
+    const transaction = await knex('transactions').insert({
+       id: crypto.randomUUID(),
+       title: 'Transação de teste',
+       amount: 1000, 
+    })
+    .returning('*')
+
+    return transaction
+}) 
+
+- Agora posso fazer outro teste fazendo uma busca com um select e ele vai buscar 
+todas as inserções que foram feitas na tabela.
+
+app.get('/hello', async () => {
+    const transaction = await knex('transactions').select('*')
+
+    return transaction
+}) 
+
+## importante
+
+- As Rotas da aplicação vão fazendo diferentes operações no banco de dados 
+a maioria das API´s que desenvolvemos são rotas que são portas de entrada 
+para o usuário poder trabalhar com o banco de dados, anexado a várias regras 
+de negócios. 
+
 
 
 
