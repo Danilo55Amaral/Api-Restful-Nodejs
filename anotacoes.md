@@ -212,6 +212,86 @@ app.get('/hello', async () => {
 .gitignore e posso passar arquivos que serão ignorados na hora de subir o código 
 para o repositório.
 
+# Criando a primeira migration 
+
+- Agora é necessário criar as tabelas do banco de dados, colunas, chaves primárias, 
+chaves estrangeiras, relacionamentos e outras configurações dentro do banco de dados.
+
+## Migrations 
+
+- É um controle de versão dentro do banco de dados, as migrations é um histórico de 
+todas as mudanças que foram feitas dentro do banco de dados, essas mudanças são 
+registradas sempre com a data e o horario em que foram criadas, da para criar toda 
+uma linha do tempo de como o banco de dados mudou ao longo do tempo. 
+
+- Com as Migrations temos uma tabela criada com ela de forma automatica, chamada 
+migrations onde o banco de dados registra nessa tabela quais itens do histórico do
+banco de dados ele já teve. 
+
+- Para utilizar é necessário fazer algumas configurações dentro do package.json 
+por padrão o Knex foi desenvolvido para executar com Js e não com Ts , dentro da
+pasta node_modulesn na pasta .bin tem um arquivo chamado knex que é uma cli do knex 
+dá para criar e executar algumas coisas. 
+
+- Quando se executa npx knex -h ele vai mostrar uma série de comando do knex varios 
+desses comandos iniciam com migrate e o migrate:make serve para criar a migrate.
+
+- Eu utilizo o comando npx knex migrate:make nome-da-tabela geralmenete o nome da 
+migration tem que simbolizar qual alteração queremos que sejam feitas no banco de 
+dados. 
+
+- Se apenas todar esse comando dessa forma vai retornar um erro por que o knex 
+precisa saber as inoformações do banco de dados que está sendo utilizado, para 
+que isso seja feito existe uma convenção de criar um arquivo na raiz do projeto
+chamado knexfile.ts  dentro desse arquivo eu apenas importo as configurações do meu 
+banco que estão em database. 
+Como eu apenas quero passar as configurações eu separo ela em uma variavel isolada 
+chamada config.
+
+export const config = {
+    client: 'sqlite',
+    connection: {
+        filename: './tmp/app.db',
+    },
+    useNullAsDefault: true,
+}
+
+export const knex = setupKnex(config)
+
+- Dentro do arquivo knexfile eu impoto apenas a config e exporto elas como 
+padrão. 
+
+import { config } from "./src/database"
+
+export default config
+
+- Se rodar novamente o comando para cria a migration ele vai gerar novamente um erro
+porém de typeScript que é necessário instalar algumas bibliotecas para o knex. 
+
+- Dentro do pachage.json euvou criar um script para o node utilizar o tsx para 
+o knex. Por isso nesse script eu tbm indico o caminho do arquivo knex.
+
+"knex": "node --no-warnings --loader tsx ./node_modules/knex/bin/cli.js"
+
+- Executando o comando npm run knex -- -h  e ele vai trazer novamente todos os 
+comandos em seguida eu voi rodar o comando abaixo para criar a migration
+
+- Agora vou criar a migrate com o seguinte comando abaixo: 
+    npm run knex -- migrate:make create-nome-da-migrate 
+
+- Após rodar o comando a cima ele vai criar automaticamete uma pasta chamada 
+migrations e dentro um arquivo TypeScript pode podemos escrever toda a parte de 
+criação da tabela. Note que ele vai criar o arquivo na raiz do projeto e podemos 
+mudar essa localização, dentro do arquivo de database podemos configurar algumas
+coisas especificas para migrations, antes eu importo de dentro do knex o Knex só 
+que com o K maiúsculo esse Knex que estamos importando é uma interface, eu devo 
+passar que nossa config deve passar Knex.Config com isso nossa variavel de config 
+irá ter todas as configurações do knex. Eu passei migrations e dentro eu configurei 
+a extension que será usada nas migrations, a outra é o directory  onde quero que
+seja salva as migrations. A pasta tmp foi renomeada para db e vou passar a sua 
+localização para dentro de directory  e salvar dentro dela as migrations. 
+
+
 
 
 
