@@ -605,3 +605,56 @@ vai validar
 
 ## RNF 
 - Como vamos atingir os demais requisitos, quais tecnologias, estratégias. 
+
+# Plugins do Fastify 
+
+- A funcionalidade de plugins do Fastify é bem interessante, essa é uma forma de 
+separar pequenos pedaçõs da aplicação em mais arquivos. 
+
+- Eu criei uma pasta dentro de src chamada routes e dentro eu crio arquivos para 
+as minhas rotas, dentro do meu arquivo eu exporto uma função para minha rota aqui 
+chamei de transactionsRoutes esa função recebe como paramtro o app que é a variavel,
+devo importar nesse arquivo o knex. É obrigatório que seja uma função asyncrona.
+
+import knex from "knex";
+
+export async function transactionsRoutes(app) {
+    app.get('/hello', async () => {
+        const transaction = await knex('transactions')
+        .where('amount', 1000)
+        .select('*')
+    
+        return transaction
+    }) 
+}
+
+- dentro de server chamamos app.register() com o nome do plugin que criamos.
+
+import { transactionsRoutes } from './routes/transactions';
+
+app.register(transactionsRoutes)
+
+- Se testarmos rodando o projeto e verificando o localhost a rota vai está sendo 
+enviada, significa que funcionou o plugim criado.
+
+- Vai dar um erro de TypeScript por ele não reconhecer o formato de app podemos tipar
+o app passando : FastifyInstance que é a instancia da aplicação.
+
+import { FastifyInstance } from "fastify";
+import  { knex } from "../database";
+
+export async function transactionsRoutes(app: FastifyInstance) {
+    app.get('/hello', async () => {
+        const transaction = await knex('transactions')
+        .where('amount', 1000)
+        .select('*')
+    
+        return transaction
+    }) 
+}
+
+## Ordem dos plugins 
+
+- A ordem que definimos os plugins é a ordem em que o Fastify irá executar , por isso
+se tem algum plugin que modifica algo importante na aplicação e for necessário rodar
+antes dos outros é importante colocar antes dos outros. 
