@@ -438,6 +438,44 @@ a maioria das API´s que desenvolvemos são rotas que são portas de entrada
 para o usuário poder trabalhar com o banco de dados, anexado a várias regras 
 de negócios. 
 
+# Variáveis de ambiente 
+
+- São informações que podem ser diferentes a cada ambiente em que a aplicação for 
+executada. 
+
+- Criamos um arquivo chamado .env para se trabalhar com esse arquivo é importante 
+instalar uma extenção chamada DotENV essa extenção entende a sintaxe do arquivo env
+ dentro desse arquivo .env todas as configurações serão variaveis e valores. 
+
+- É necessário ler esse arquivo dentro do node e para isso instalamos o dotenv 
+com o comando    npm i dotenv 
+
+- Quando eu for utilizar a variavel de ambiente eu importo ela no topo do  arquivo
+onde vou uriliza-la, importo de dotenv/config esse arquivo expõe do arquivo .env
+na raiz da aplicação todos os valores ali dentro e colocar dentro da variavel 
+global chamada  process.env eu posso chamar a varivale de ambiente criada a partir 
+dessa global. 
+
+connection: {
+        filename: process.env.DATABASE_URL,
+    },
+
+- O TypeScript garou um erro informando que se o DATABASE_URL tiver undefined todo 
+o código vai gerar um erro, isso por que ele não sabe que o DATABASE_URL está 
+preenchido, uma das formas de resolver é escreber um if se DATABASE_URL não for 
+informado vou disparar um erro utilizando um throw e nenhum código abaixo sera 
+executado. 
+
+_ Geralmente as variáveis de ambientes são utilizadas para colocar dados sensiveis 
+chaves de API, por isso é interessante colocar esse arquivo dentro do arquivo 
+.gitignore para que ele não suba ao respositorio publico e fique visivel. 
+
+- Quando é necessário compartilhar essas variaveis podemos criar um arquivo chamado 
+.env.example e dentro dele colocamos as variaveis porém sem colocar valores 
+principalmente quando se tem dados sensiveis, só deixamos valores apenas quando não 
+se trata de dados sensiveis, Dados como chaves de api só colocamos o nome sem o valor.  Por isso esse arquivo pode subir no git.
+
+
 
 
 
