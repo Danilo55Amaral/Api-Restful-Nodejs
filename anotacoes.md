@@ -572,20 +572,36 @@ if (_env.success == false) {
 export const env = _env.data
 
 - Note que ao rodar novamente o projeto o erro já mudou e teremos lá a informação de
-Invalid enviroment variables  
+Invalid enviroment variables. 
+
+# Implementando as rotas 
+
+# Requisitos da aplicação
+
+- É importante pensar antes a aplicação antes de colocar a mão na massa, é importante 
+pensar em 3 coisas dentro da engenharia de software que são RF(Requisitos funcionais)
+RN(Regras de negócio) e RNF(Requisitos não funcionais). 
+
+- É muito importante pensar antes nessas coisas antes de sair criando as rotas 
 
 
 
+## RF 
+- Quais são as funcionalidades da aplicação o que o usuário pode ou não fazer 
+dentro da aplicação.
 
+- O usuário deve poder criar uma nova transação;
+- O usuário deve poder obter um resumo da sua conta;
+- O usuário deve poder listar todas as transações que já ocorreram;
+- O usuário deve poder visualizar uma transação única;
 
+## RN 
+- Podemos colocar condicionais coisas que podem acontecer e que a aplicação 
+vai validar 
 
+- A transação pode ser do tipo crédito que somará ao valor total, ou débito diminui;
+- Deve ser possível identificarmos o usuário entre as requisições;
+- O usuário só pode visualizar transações o qual ele criou;
 
-
-
-
-
-
-
-
-
-
+## RNF 
+- Como vamos atingir os demais requisitos, quais tecnologias, estratégias. 
