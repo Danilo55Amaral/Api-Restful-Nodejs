@@ -475,6 +475,107 @@ chaves de API, por isso é interessante colocar esse arquivo dentro do arquivo
 principalmente quando se tem dados sensiveis, só deixamos valores apenas quando não 
 se trata de dados sensiveis, Dados como chaves de api só colocamos o nome sem o valor.  Por isso esse arquivo pode subir no git.
 
+# Tratando env com Zod 
+
+- Existe uma forma meçhor de se trabalhar com variaveis de ambientes obrigatórias 
+sem ter a necessidade de ta criando blocos if o tempo todo. 
+
+- Algo interessante é utilizar uma lib especifica para a validação de dados, elas 
+validam o formato dos dados, é necessário validar além da presença os valores o 
+formato, isso é necessário por que a aplicação não pode executar com as variaveis
+de ambiente informadas de forma incoerreta. 
+
+- Dentro da pasta src eu crio uma pasta chamada env com um arquivo index.ts dentro 
+é necessário instalar a lib Zod que a lib que utilizamos para a validação de dados. 
+basta rodar o comando     npm i zod  
+
+- Essa biblioteca pode ser utilizada para validação de qualquer tipo de dado dentro 
+da aplicação.
+
+- Eu peguei a importação do  import 'dotenv/config'; e movi ela para dentro do novo 
+arquivo index que criei, em seguida eu importo de dentro do zod o z que serve para
+criar um Schema e dentro dele eu devo informar o formato que vou receber de dados 
+das variaveis de ambiente, e fazemos para todas as variaveis de ambiente um único 
+Schema, eu defino que meu Schema é um objeto passando z.object e dentro eu passo o 
+objeto, nesse objeto deve ser informado as variaveis que temos dentro da aplicação
+utilizo o z e seto o tipo da variavel se ela puder ter um valor vazio eu posso 
+utilizar o nullable. 
+
+import 'dotenv/config';
+import { z } from 'zod';
+
+const envSchema = z.object({
+    DATABASE_URL: z.string(),
+})
+
+- Em seguida eu crio uma constante env eu utilizei o método parse para pegar o 
+schema passando para ele os dados que vem de process.env e o zod de forma automatica
+faz uma validação. Eu devo exportar essa const.
+
+export const env = envSchema.parse(process.env) 
+
+- Dentro do meu database sempre que for necessário uma variavel de ambiente ao invés 
+de acessa-la de process.env eu vou acessar diretamente de env e para isso eu devo 
+importar o env.
+
+import { env } from "./env";
+
+connection: {
+    filename: env.DATABASE_URL,
+},
+
+- Algo interessante que que nessa validação ele já traz os dados tipados. 
+
+- Eu posso fazer a mesma coisa dentro do server com a PORT 
+
+app.listen({
+    port: env.PORT,
+}).then(() => {
+    console.log('HTTP Server Running!')
+})
+
+- Outra coisa bem comum de se ter dentro das variaveis de ambiente é o NODE_ENV 
+que informa em qual ambiente a aplicação roda development, test, production 
+eu passo com o z e vou utilizar um enum para informar que essa variavel pode ser
+qualquer um dod 3 ambientes e caso ela não esteja posso passar um default que é 
+production isso significa que quando a aplicação estiver executando sem informar a
+NODE_ENV irá ser utilizado production por padrão.
+
+const envSchema = z.object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('production'),
+    DATABASE_URL: z.string(),
+    PORT: z.number().default(3333),
+})
+
+- Dentro do arquivo .env eu devo informar a variavel NODE_ENV com development
+no arquivo .env.exemple eu devo colocar a mesma coisa.
+
+- Note que se comentar-mos a variavel de ambiente DATABASE_URL e fazer um teste 
+rodando novamente oprojeto, vai dar um erro por que o zod fez a tratativa porém a 
+mensagem de erro não é tão clara, podemos melhorar no lugar do parse o safeParse 
+que também faz a validação assim como o parse porém ele não dispara um erro caso 
+a validação falhe, em seguida eu crio um if com a seguinte condição caso  
+env.sucess seja falso isso significa que ele falhou a verificação por que existe 
+alguma variavel ambiente que não está informada da maneira correta, e com isso 
+criamos o nosso proprio erro  console.error('Invalid enviroment variables!', _env.
+error.format()), para o código não continuar executando eu utiizo um throw new Error
+em seguida caso ele passe utilizamos ==>  export const env = _env.data 
+
+const _env = envSchema.safeParse(process.env)
+
+if (_env.success == false) {
+    console.error('Invalid enviroment variables!', _env.error.format())
+
+    throw new Error('Invalid enviroment variables.')
+}
+
+export const env = _env.data
+
+- Note que ao rodar novamente o projeto o erro já mudou e teremos lá a informação de
+Invalid enviroment variables  
+
+
+
 
 
 
