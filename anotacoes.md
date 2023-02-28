@@ -778,3 +778,58 @@ declare module 'knex/types/tables' {
 - Isso vai deixar o código mais inteligente , ele não vai deixar por ex alguém passar
 um campo que não exista, mostrar os campos existentes, isso vai deixar o código 
 mais fácil de dar manuntenção.
+
+# Listagem das transações 
+
+- Aqui criamos uma rota de listagem de todas as transações e para isso é utilizado 
+o metodo get, o request e reply só utilizamos se for necessário caso não seja não 
+precisa colocar, nessa requisição em que chamei de transactions eu utilizo o knex 
+dando um select o * é opcional , se colocar apenas o select vai dar certo também, 
+eu retorno transactions.
+
+ app.get('/', async () => {
+        const transactions = await knex('transactions').select()
+
+        return transactions 
+    })
+
+- No insomnia eu posso duplicar a requisição que eu tinha feito e mudar para GET 
+posso tirar o body e testar dando um Send.
+
+- É interessante retornar o transactions como objeto por que caso seja necessário 
+retornar no futuro alguma informação a mais como o o total por ex , é interessante 
+trabalhar com objetos tanto no retorno quando no envio de informações de um lado 
+para o outro por que se torna mais fácilde adicionar ou remover informações futuramente
+
+app.get('/', async () => {
+        const transactions = await knex('transactions').select()
+
+        return {
+            transactions
+        }
+    })
+
+- Aqui também criamos a rota que busca detalhes de uma transação unica, eu utilizo 
+/:id por que eu quero receber um parametro da rota que vai identificar a transação 
+vou utilizar o request e acessar o params que são os parametros nomeados que temos 
+na url, vou utilizar o zod para fazer a validação. eu utilizo o first no final por que 
+é esperado que se tenha apenas uma transação com esse id e caso esse metodo first não 
+seja utilizado ele irá retornar esse método com um array , esse método informa que só 
+se tem um resultado que é o primeiro resultado. No final eu retorno transaction como 
+objeto. 
+
+app.get('/:id', async (request) => {
+        const getTransactionParamsSchema = z.object({
+            id: z.string().uuid(),
+        })
+
+        const { id } = getTransactionParamsSchema.parse(request.params)
+
+        const transaction = await knex('transactions').where('id', id).first()
+
+        return { transaction }
+    })
+
+    - Em seguida eu volto no insomnia e crio uma nova rota chamada Get transaction, na 
+    url eu preciso colocar um id de uma transação valida para testar. 
+
