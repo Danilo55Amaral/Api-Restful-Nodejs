@@ -658,3 +658,81 @@ export async function transactionsRoutes(app: FastifyInstance) {
 - A ordem que definimos os plugins é a ordem em que o Fastify irá executar , por isso
 se tem algum plugin que modifica algo importante na aplicação e for necessário rodar
 antes dos outros é importante colocar antes dos outros. 
+
+# Criação de transações
+
+- Dentro do server eu consigo na importação do register passar um segundo paramtro 
+com algumas configurações e uma delas é o prefix que é o prefixo da url para que 
+esse plugin seja ativo com isso todas as rotas que tiverem esse prefixo vão cair 
+nesse plugin. 
+
+- Para criar uma nova transação utilizamos o body da requisição que é de onde vem
+os dados da transação, dentro do paramtro da função async recebemos request que é 
+a requisição dentro dessa request temos varias informações que podemos buscar, aqui 
+vamos utilizar o body, o request body é de onde vem as informações que geralmente 
+são encriptadas com protocolo HTTPs essas informações servem para criar ou editar 
+algum recurso. 
+
+- Dentro desse Request body queremos receber algumas informações como titulo, valor 
+e o tipo da transação se é credito ou debito. 
+
+- Utilizamos o zod para validar o body da requisição e também fazer a validação de 
+tipos de forma automatica, igual fizemos com as variaveis de ambiente.  
+
+- Em seguida foi criado uma nova transaction utilizando o metodo insert para inserir 
+informações no banco de dados, no id eu vou utiizar a função randomUUID(), no amount
+eu estebeleci a seguinte condição se for do tipo credito eu utilizo o amount normal
+se não for eu pego o amount e multiplico por -1 , eu não preciso armazenar esse 
+insert dentro de uma variavel e nem retornar nada.
+
+- Eu também posso utilizar o replay ou response para enviar um status code e o send 
+vai enviar uma resposta que pode conter uma mensagem ou até mesmo ficar vazia.
+
+import { randomUUID } from "node:crypto";
+import { FastifyInstance } from "fastify";
+import { z } from "zod";
+import { knex } from "../database";
+
+export async function transactionsRoutes(app: FastifyInstance) {
+    app.post('/', async (request, replay) => {
+
+        const createTransactionBodySchema = z.object({
+            title: z.string(),
+            amount: z.number(),
+            type: z.enum(['credit', 'debit']),
+        })
+
+        const { title, amount, type } = createTransactionBodySchema.parse(
+            request.body,
+        )
+
+        await knex('transactions').insert({
+            id: randomUUID(),
+            title,
+            amount: type == 'credit' ? amount : amount * -1,
+        })
+
+        return replay.status(201).send()
+    })
+}
+
+## Insomnia 
+
+- É um RESTclient é uma aplicação que permite fazer chamadas HTTP dentro da nossa 
+maquina para dentro de alguma API, pode ser baixado de forma totalmente gratuita. 
+
+- Abrindo o insomnia eu crio uma nova request collection em Create New Request 
+Collection, chamei de Ignite Node.js API REST , eu crio uma pasta em New Folder 
+e vou chamar essa pasta de Transactions, Dentro dessa pasta eu criei minha 
+primeira requisição do tipo POST e vou passar para ela a rota http://localhost:3333/
+transactions , Renomeei essa requisição para Create transaction, dentro do body eu 
+vou mudar para JSON, e dentro eu envio os dados da transação. 
+
+{
+	"title": "Freelancer",
+	"amount": 8000,
+	"type": "credit"
+}
+
+- Após isso eu clico em Send e podemos ver o status code da requisição, ele mostrou 
+201 informando que foi criado.
