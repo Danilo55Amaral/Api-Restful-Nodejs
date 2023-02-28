@@ -736,3 +736,45 @@ vou mudar para JSON, e dentro eu envio os dados da transação.
 
 - Após isso eu clico em Send e podemos ver o status code da requisição, ele mostrou 
 201 informando que foi criado.
+
+# Tipagem no Knex 
+
+- Uma das coisas que podemos verificar no Knex é que ele não consegue identificar 
+quais campos e tabelas existem dentro do banco de dados de forma automatica 
+ele não possue uma inteligencia de sugerir quais campos existem no banco, quais 
+são opcionais, essa é uma limitação da maior parte dos Query Builders. 
+
+- Existe uma forma de conseguir informar ao Knex de forma mais manual quais são 
+as tabelas do banco para que o código fique mais inteligente. 
+
+- Para fazer isso eu crio uma pasta dentro de src chamada @types essa pasta vai servir 
+para sobrescrever tipagens de outras bibliotecas, dentro eu criei um arquivo que 
+chamei de knex.d.ts é importante ressaltar que esse arquivo precisa ter a extenção 
+.d.ts isso significa que esse arquivo vem de definição de tipos, esse tipo de arquivo 
+não possue código JavaScript dentro dele, apenas código TypeScript. 
+
+- Dentro desse arquivo para sobrescrever um tipo que vem de dentro de uma biblioteca
+eu importo a biblioteca, nesse caso importamos o knex, isso significa que vou 
+reaproveitar todos os tipos que vem de dentro do knex e nesse arquivo iriei adicionar 
+alguns novos tipos. 
+
+- Dentro desse arquivo eu declaro um modulo e crio uma interface passando as 
+informações. 
+
+import { Knex } from "knex";
+
+declare module 'knex/types/tables' {
+    export interface Tables {
+        transactions: {
+            id: string
+            title: string
+            amount: number
+            create_at: string
+            session_id?: string
+        }
+    }
+}
+
+- Isso vai deixar o código mais inteligente , ele não vai deixar por ex alguém passar
+um campo que não exista, mostrar os campos existentes, isso vai deixar o código 
+mais fácil de dar manuntenção.
