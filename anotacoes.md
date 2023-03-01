@@ -852,5 +852,131 @@ amount, aqui eu utilizei o { as: } que é o nome que quero dar para essa coluna.
         return { summary }
     })
 
+# Utilizando cookies no Fastify 
 
+- Quando dois usuarios utilizarem a aplicação todas as transações criadas por ambos 
+fiquem especificas para cada um deles.
+
+- Quando o usuario criar a sua primeira transação eu anoto na sua máquina um id 
+e esse id ele irá utilizar em todas as transações, requisições que for fazer a diante
+para identificar que esse usuário é o mesmo que criou essa transação inicialmente. 
+
+## Cookies 
+
+- São formas de manter contexto entre requisições, são bastante utilizados em sites e 
+redes sociais, com isso não é necessário está logado para que o site ou rede social 
+saiba quem é o usuario no contexto entre todas as requições que for feita. 
+
+## LGPD e Cookies
+
+- Hoje é Obrigado pela LGPD o site perguntar se o usúario aceita esses cookies,
+muitas vezes o site caso queira monitorar o usuário  ele salva alguma informação 
+como o id dentro do navegador de uma forma que o usuário não percebe muitas vezes 
+esse id mesmo que a pessoa não esteja logado é uma forma do site conseguir validar 
+que o mesmo usuário baseado nesse id que fica salvo nos cookies fez tais requisições 
+e tais processos dentro da aplicação. 
+
+- Toda vez que o usuário loga na aplicação todo esse histórico de coisas feitas mesmo 
+antes de está logado são salvos na conta do usuário ou seja o usuário não precisa está 
+logado na aplicação mas ela coletar tudo que o usuário faz. 
+
+- Utilizamos aqui a estratégia de cookies para conseguir saber que o mesmo usuário 
+que está cadastrando transações é o usuário que está listando as transações. 
+
+- Foi por isso que dentro da tabela transactions no nosso db colocamos um campo 
+chamado session_id  
+
+## Fluxo na aplicação 
+
+- A partir do momento que o usuário criar a primeira transação  vai ser anotado para
+esse usuário um session_id, quando esse usuário for listar alguma transação podemos 
+sempre validar apenas transações daquele mesmo session_id 
+
+- Para trabalhar com Cookies dentro do fastify rodamos o comando abaixo: 
+        npm i @fastify/cookie 
+Vai facilitar para trabalhar com cookies. 
+
+- Em seguida dentro do server antes das rotas e lembre que a ordem é IMPORTANTE 
+isso por que se queremos trabalhar com cookies dentro das rotas de transactions é 
+importante que o cadastro do modulo de cookies aconteça antes , eu importo o cookie 
+e vou utilizar a função register() e como ele é um plugim eu apenas importo ele dentro 
+da função register(cookie)  
+
+import cookie from "@fastify/cookie";
+
+app.register(cookie) 
+
+- Em seguida dentro do arquivo de transactions no app.post que é o inicio de tudo 
+eu vou utilizar uma variavel que pode mudar seu valor , vou chamar de sessionId 
+e eu vou procurar dentrro de cookies da minha requisição que é o request se já 
+existe uma sessionId  ==>  let sessionId = request.cookies.sessionId   
+se ela já existe eu passo ela dentro do meu insert ==> session_id: sessionId 
+eu também vou estabelecer a seguinte condição, se não existir uma sessionId eu crio 
+uma nova sessionId utilizando o randomUUID() que gera um id único e vou utilizar 
+o replay para salvar nos cookies uma informação chamada sessionId com o valor desse
+id que foi criado.
+
+  let sessionId = request.cookies.sessionId
+
+        if (!sessionId) {
+            sessionId = randomUUID()
+
+            reply.cookie('sessionId', sessionId)
+        }
+
+        await knex('transactions').insert({
+            id: randomUUID(),
+            title,
+            amount: type == 'credit' ? amount : amount * -1,
+            session_id: sessionId,
+        })
+
+- Da para passar configurações para esses cookies, dessas informações as mais 
+importantes são o path que serão quais endereços esses cookie vai está disponivel 
+ou seja quais rotas do back end vai poder acessar esse cookie, colocando / eu estou 
+dizendo que qualquer rota do back end pode acessar esse cookie, sobre a parte de 
+expiração do cookie isso por que todo cookie que salvamos no navegador do usuário 
+precisa expirar em algum momento, podemos utilizar o expires dessa forma é necessário 
+passar o objeto Date com a data em que o cookie irá expirar, temos também uma outra 
+opção bastante utilizada chamada maxAge que podemos passar em milisegundos o tempo 
+que esse cookie deve durar no navegador do usuário. 
+
+reply.cookie('sessionId', sessionId, {
+    path: '/',
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days 
+})
+
+## Trabalhando com milisegundos
+
+- 1 segundo equivale a 1000 milisegundos, para 1 minuto eu pego esse valor e 
+multiplico por 60 ==> 1000 * 60 para 1 hora eu multiplico por mais 60  ===> 
+1000 * 60 * 60 para 1 dia eu multiplico por mais 24 ==> 1000 * 60 * 60 * 24 
+e para 7 dias eu multiplico por mais 7 ===> 1000 * 60 * 60 * 24 * 7 
+
+## Clean code 
+
+- Foi muito mais legivel calcular dessa forma do que colocar o valor todo em
+milesegundos ==> 604.800.000, o código ficou muito mais legivel, também comentar a 
+quantidade de dias ao lado torna ainda mais fácil de entender. 
+
+- Se eu apenas tovesse calculado e colocado  604.800.000 funcionaria porém isso 
+deixaria o código ilegivel. Ninguém entenderia essa poha depois. 
+
+## Testando os Cookies 
+
+- Dentro do insomnia eu vou na minha rota post para criar minha primeira transação 
+e testo utilizando o Send, a aba de Cookies vai identificar e mostrar o sessionId 
+caso tudo esteja certo.
+
+- Note que se utilizamos a rota de listar nossas transações essa nova transação que
+foi criada agora vai possuir um valor no session_id diferente das antigas que 
+listava como null 
+
+{
+	"id": "a871bd2d-8a52-4239-8041-9e8aa239a891",
+	"title": "Freelancer",
+	"amount": 8000,
+	"create_at": "2023-03-01 19:06:41",
+	"session_id": "02b0fb02-b9f6-45e5-912a-b76794dae138"
+}
 

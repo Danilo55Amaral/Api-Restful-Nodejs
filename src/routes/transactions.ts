@@ -32,7 +32,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
         return { summary }
     })
 
-    app.post('/', async (request, replay) => {
+    app.post('/', async (request, reply) => {
 
         const createTransactionBodySchema = z.object({
             title: z.string(),
@@ -44,12 +44,24 @@ export async function transactionsRoutes(app: FastifyInstance) {
             request.body,
         )
 
+        let sessionId = request.cookies.sessionId
+
+        if (!sessionId) {
+            sessionId = randomUUID()
+
+            reply.cookie('sessionId', sessionId, {
+                path: '/',
+                maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days 
+            })
+        }
+
         await knex('transactions').insert({
             id: randomUUID(),
             title,
             amount: type == 'credit' ? amount : amount * -1,
+            session_id: sessionId,
         })
 
-        return replay.status(201).send()
+        return reply.status(201).send()
     })
 }
