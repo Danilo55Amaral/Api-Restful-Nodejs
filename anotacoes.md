@@ -980,3 +980,134 @@ listava como null
 	"session_id": "02b0fb02-b9f6-45e5-912a-b76794dae138"
 }
 
+# Validando existência do cookie 
+
+- Nas rotas de listagem é necessário buscar apenas as transações daquela sessão 
+daquele usuário, so sessionId que identifica o usuário, Eu preciso utilizar request 
+para acessar cookies e pegar o sessionId e escrevo a seguinte condição se a sessionId
+não existir dentro dos cookies eu posso retornar de dentro uma resposta reply de erro 
+eu posso utilizar o status nessa resposta passando o status code de não autorizado por 
+ex e posso utilizar um send passando uma mensagem de error. veja como ficou a rota 
+após essa modificação: 
+
+app.get('/', async (request, reply) => {
+        const sessionId = request.cookies.sessionId
+
+        if (!sessionId) {
+            return reply.status(401).send({
+                error: 'Unauthorized.',
+            })
+        }
+
+        const transactions = await knex('transactions').select()
+
+        return {
+            transactions
+        }
+    })
+
+- PS Dentro da minha requisição de listar do insonmia tem uma parte de cookies que me 
+leva para Manage Cookies com as informações do meu cookie, eu posso excluir meu  
+cookie dentro dessa opção. 
+
+- Para testar eu deleto meu cookie no insonmia e chammo novamente a rota de listar 
+as transações e note que vai mostrar a mensagem error: 'Unauthorized.',
+Criando novamente uma transação ele vai criar um novo cookie e isso faz com que 
+eu consiga novamente listar as transações.
+
+- dentro da parte em que eu utilizo as querie de banco de dados em transactions nessa
+rota eu vou adicionar um where para listar transações apenas onde o session_Id seja 
+igual a sessionId 
+
+app.get('/', async (request, reply) => {
+        const sessionId = request.cookies.sessionId
+
+        if (!sessionId) {
+            return reply.status(401).send({
+                error: 'Unauthorized.',
+            })
+        }
+
+        const transactions = await knex('transactions')
+        .where('session_id', sessionId)
+        .select()
+
+        return {
+            transactions
+        }
+    })
+
+- Testando a listagem no isnsonima note que ele vai trazer apenas a transação que 
+foi criada com session_id a partir do cookie que foi criado.
+
+- Note que algmas das rotas vão precisar desse mesmo código que valida que o cookie 
+está presente, para não ter que ficar repetindo o mesmo código  vamos criar um 
+middleware. 
+
+# Middleware 
+
+- É a criação de interceptadores na nas rotas e reaproveita-los esses interceptadores
+executam antes das 3 rotas, eles recebem os mesmo parametros request e reply e eles
+podem fazer verificações dentro das rotas
+
+- Eu criei uma pasta chamada Middlewares e dentro um arquivo chamado 
+check-session-id-exists.ts, dentro desse arquivo eu crio e exporto 
+uma função na qual chamei de checkSessionIdExists() e dentro dela eu 
+vou colocar a validação que criei dentro da minha rota.
+
+- Note que vai dar um erro de tipagem e para isso é necessário tipar importando 
+o FastifyReply e FastifyRequest e tipando de forma manual. 
+
+import { FastifyReply, FastifyRequest } from "fastify"
+
+export async function checkSessionIdExists(
+    request: FastifyRequest,
+    reply: FastifyReply
+) {
+    const sessionId = request.cookies.sessionId
+
+    if (!sessionId) {
+        return reply.status(401).send({
+            error: 'Unauthorized.',
+        })
+    }
+}
+
+## preHandler 
+
+- São formas de compartilhar regras de negócio entre várias rotas.
+
+- Dentro da rota vai dar um erro no sessionId e para corrigir eu posso desestruturar 
+sessionId de dentro de request.cookies ==> const { sessionId } = request.cookies 
+
+- Dentro da minha rota eu vou colocar como segundo parametro antes da função async 
+um objeto que me dá acesso a várias configurações a que vou utilizar aqui é a 
+preHandler e dentro dele eu coloco um array com a função checkSessionIdExists, 
+geralmente utilizamos array por que dentro desse preHandler podemos colocar varias 
+funções. 
+
+app.get(
+    '/',
+    {
+        preHandler: [checkSessionIdExists],
+    },
+    async (request, reply) => {
+        const { sessionId } = request.cookies
+
+        const transactions = await knex('transactions')
+            .where('session_id', sessionId)
+            .select()
+
+         return {
+            transactions
+        }
+    })
+
+- Com isso quando o usuário acessar a rota raiz '/'  antes ele executar o Handler que
+é a função async ele iá executar a função checkSessionIdExists, essa função valida 
+se a sessionId existe se ela não existe vai retornar um erro e o código nem continua
+se a sessionId existir o código continua executando.
+
+- Podemos testar novamente no insonmia da mesma forma que fizemos anteriormente.
+
+- Podemos reaproveitar isso em outras rotas caso seja necessário.
