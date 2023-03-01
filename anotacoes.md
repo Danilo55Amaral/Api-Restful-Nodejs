@@ -833,3 +833,24 @@ app.get('/:id', async (request) => {
     - Em seguida eu volto no insomnia e crio uma nova rota chamada Get transaction, na 
     url eu preciso colocar um id de uma transação valida para testar. 
 
+
+# Resumo de transações 
+
+- Aqui criamos uma nova rota para retornar o resumo, essa rota vou chamar de summary,
+essa rota simplismente faz uma querie para o banco de dados. Eu vou utilizar o metodo 
+de agregção sum que pode ser utilizado em qualquer banco sql, esse método soma todos os
+valores de uma coluna, eu passo para o metodo o nome da coluna que quero somar, como 
+eu só espero um único valor eu não preciso retornar um array, por isso eu utilizei um 
+first(), no segundo parametro de sum eu posso passar algumas configurações para o 
+amount, aqui eu utilizei o { as: } que é o nome que quero dar para essa coluna.
+
+ app.get('/summary', async () => {
+        const summary = await knex('transactions')
+            .sum('amount',  { as: 'amount' })
+            .first()
+
+        return { summary }
+    })
+
+
+
