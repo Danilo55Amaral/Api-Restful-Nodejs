@@ -1234,3 +1234,85 @@ um script para rodar meu teste.
 "test": "vitest" 
 
 - Assim basta rodar npm run test ou npm test que já vai rodar o teste.
+
+# Testando criação de transação
+
+- Aqui foi feito o primeiro teste da aplicação, que faz uma chamada HTTP , 
+cria uma nova transação e vai validar se essa requisição retornou um StatusCode 
+de sucesso como um 201.
+
+
+## SuperTest 
+- Para fazer meu teste e evitar tempo colocando rodando o servidor novamente para 
+fazer esse teste, existe uma ferramenta chamada supertest para instalar eu rodo o 
+comando ====> npm i supertest -D   e  npm i -D @types/supertest  
+ 
+- É importante instalar esse tipo de ferramenta como dependencia de desenvolvimento 
+por que os testes nunca vão rodar em produção. 
+
+- Com essa ferramenta dá para fazer requisição na aplicação sem ter que colocar a 
+aplicação no ar sem ter que utilizar o metodo listen em meu arquivo de testes. 
+
+- Para fazer isso eu separo a meu server em dois arquivos o app.ts e o server.ts
+o arquivo app vou colocar todo o código que está antes do app.listen e dentro 
+desse arquivo eu exporto o app , dentro do server.ts eu importo o app e as variaveis 
+de ambiente e fazer apenas o listen. Rodando o projeto vai executar tudo normalmente.
+
+- Agora no meu teste eu vou rodar apenas o app e não vou precisar fazer o listen 
+com isso quando eu importar o app dentro do meu arquivo de teste eu vou ter acesso 
+a minha aplicação sem precisar subir um servidor para ela. 
+
+- Eu importo o supertest como request, eu vou utilizar o await e chamar o request 
+passando app.server para ele receber o servidor do node, em seguida da para utiliza 
+os metodos https, eu utilizei o metodo post e passei a minha rota, e depois utilzei 
+o send em que envio um objeto com os dados que quero enviar, eu posso armazenar isso 
+em um response, para validar eu utilizei o expect informando que eu quero que o 
+responde.statusCode seja igual ao 201 ==> expect(response.statusCode).toEqual(201)
+
+import { expect, test } from "vitest";
+import { app } from  "../src/app";
+import request from "supertest";
+
+test('o usuário consegue criar uma nova transação', async () => {
+    const response = await request(app.server).post('/transactions').send({
+        title: 'New transaction',
+        amount: 5000,
+        type: 'credit',
+    })
+
+    expect(response.statusCode).toEqual(201)
+})
+
+- Note que o teste não vai passar e vai retornar um erro 404 isso aconteceu por que 
+os plugins que utilizamos utilizam funções async e o erro aconteceu por que a  
+aplicação ainda não terminou de cadastrar todos os plugins, é necessário antes de 
+executar os testes, assegurar que a aplicação já terminou de cadastrar todos os 
+plugins, ja terminou de fazer todas as operações assincronas que ela precisava. 
+
+- Para resolver isso eu posso importar de dentro do vitest uma função chamada 
+beforeAll, colocamos essa função no arquivo de teste, dentro dessa função dá 
+para executar algum código antes que todos os testes executem, essa função 
+executa uma única vez antes de todos os testes, se fosse antes de cada teste 
+poderiamos utilizar a função beforeEach. 
+
+- Dentro do beforeAll eu passaei uma função async e escrevo que antes de todos 
+os testes quero aguardar e por isso utilizo um await, aguardar que o app 
+esteja pronto e por isso utilizo a função ready() do fastify ela vai resolver 
+de forma automatica um valor válido ao await quando o fastify terminar de cadastrar
+os plugins.
+
+- Em seguida eu utilizo um afterAll para que depois que todos os testes executarem 
+eu fechar a aplicação. 
+
+beforeAll(async () => {
+    await app.ready()
+})
+
+afterAll(async () => {
+    await app.close()
+})
+
+- Após salvar esse código o meu teste automaticamente vai passar. 
+
+
+
