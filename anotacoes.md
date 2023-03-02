@@ -1111,3 +1111,126 @@ se a sessionId existir o código continua executando.
 - Podemos testar novamente no insonmia da mesma forma que fizemos anteriormente.
 
 - Podemos reaproveitar isso em outras rotas caso seja necessário.
+
+# Testes Automatizados
+
+# Entendendo testes automatizados
+
+- Uma das coisas mais importante em uma aplicação desde o inicio pricipalmente 
+em uma aplicação back end são os testes automatizados. 
+
+- Testes automatizados são formas de manter a confiança na hora de dar manutenção 
+no código a longo prazo. Não tem haver com a aplicação está ou não funcionando mas
+o proposito é que testes automatizados dão confiança para se trabalhar no código 
+principalmente quando o código está ficando mais complexo. 
+
+- Qual é o problema de não utilizar testes automatizados, muitas vezes se mexe em uma 
+parte do código, e uma outra parte que ninguém nem imaginava quebra e dá algum tipo 
+de bug ou mau funcionamento, os testes automatizados garantem que podemos mexer em
+partes do código e executar esses testes automatizados vão garantir que todas as 
+partes do código vão funcionar normalmente sem problemas. 
+
+## Tipos de testes 
+
+- Existem vários tipos vamos focar nos 3 mais famosos. 
+
+- Unitários ==> Vão testar de forma exclusiva uma únidade da aplicação ou seja uma 
+pequena parte de forma totalmente isolada, geralmente é o tipo de teste que mais 
+temos na aplicação.
+
+- Integração ==> É quando se testa a comunicação entre duas ou mais unidades ou seja 
+quando se testa como vários pedaços menores da aplicação funcionam quando estão 
+trabalhando juntos temos um teste de integração.
+
+- e2e - ponta a ponta ==> end 2 end são testes que simulam um usuário operando na 
+aplicaçaão lembre que o usuario do back end é o fornt end e por isso esse teste faz 
+tudo que o front end faria, chamadas HTTP, websockets, esse tipo de teste vai 
+verificar se as portas de entradas do back end estão funcionando de ponta a ponta 
+desde a rota até o banco de dados.
+
+## Pirâmide de testes 
+
+- É umestudo que explica a importância de cada tipo de testes, qual teste fazer 
+primeiro, cada teste possue algumas exigências que são necessário seguir na 
+aplicação, para que seja possivel fazer o teste. 
+
+- O primeiro teste que é importante aprender e utilizar é o teste E2E por que 
+por que esse tipo de teste não depende de nenhuma tecnologia, não dependem de 
+arquitetura de software e não dependem de nada qualquer pessoa pode escrever 
+esse tipo de teste. PS - Nessa aplicação vamos utilizar esse tipo de teste. 
+
+- O teste E2E é um teste que vai testar a aplicação de ponta a ponta, rotas, 
+vai bater no banco de dados e é um pouco mais demorado que os outros, em back 
+ends grandes por ex pode ser mais demorado. por isso existem também os outros 
+tipos de testes. 
+
+- O ideal é ter poucos testes E2E, mais testes de integração e muitos testes 
+unitários. 
+
+Pirâmide ====>(Base) Unitarios ====> (Meio) Integração ====> (Topo) E2E 
+
+# Criando primeiro teste 
+
+- Geralmente para criar testes em JavaSCript utilizamos alguma ferramenta terceira 
+para escrever os testes, essa biblioteca a sintaxe dos testes é a mesma para quando 
+for escrever testes em qualquer outra aplicação JS front end ou back, a ferramenta 
+mais famosa de testes hoje é o Jest que é uma ferramanta incrivel para escrever testes
+
+- Nessa aplicação não utilizamos o jest, vamos utilizar o Vitest que é um Framework 
+de testes assim como o jest, essa ferramenta vai trazer tudo que for necessário 
+dentro do ecossistema de testes, o mais importante dessa ferramenta quando comparamos 
+com o Jest é que por baixo dos panos o Vitest usa uma ferramenta chamada esbuild que 
+facilita de se trabalhar com TypeScript de forma automatica diferente do Jest que é 
+necessário utilizar o babel. 
+
+- O Vitest é compativel com o Jest ou seja se pegar projetos escritos com Jest 
+vai dar para conseguir fazer por que o código é igual, o que difere um do outro 
+é o que acontece por tras em que o Vitest é muito mais rapido que o Jest. 
+
+## Vitest 
+
+site: https://vitest.dev
+
+- Para instalar o Vitest rode o comando abaixo:
+    npm i vitest -D 
+
+- Em seguida eu crio uma pasta chamada test e dentro vou criar um arquivo para meu 
+primeiro teste, em testes utilizamos a extenção .test.ts. ou  .spec.ts 
+
+- Dentro desse arquivo eu importo de dentro de vitest a função test, executo a função 
+dando um nome ao teste como primeiro parametro dessa função, note que o nome tem que 
+descrever o que o teste faz, em seguida no segundo parametro eu escrevo uma função 
+para com o teste. 
+
+- O teste é composto de 3 coisas importantes ==> o Enunciado que é o que o teste vai 
+fazer, a operação que é o que o teste irá fazer e por ultimo a validação que é como 
+vou vaidar que o teste foi bem sucessido e para fazer isso é utilizado o expect() que 
+é o que se espera que o código faça, ou seja é o que eu espero que aconteça para que 
+o teste seja válido. 
+
+- Depois de escrever o meu teste eu executo ele rodando o comando abaixo: 
+        npx vitest 
+
+- Ele vai identificar o test e verificar se vão passar ou encontrar algum problema.
+
+ ✓ test/example.test.ts (1)
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  15:10:09
+   Duration  1.53s (transform 235ms, setup 0ms, collect 161ms, tests 5ms)
+
+
+ PASS  Waiting for file changes...
+       press h to show help, press q to quit
+
+PS - Podemos utilizar a tecla A e ele roda o teste novamente de forma bem rápida.
+
+## Criando Script 
+
+- Para não ter que rodar sempre sesse comando, dentro do package.json eu criei 
+um script para rodar meu teste. 
+
+"test": "vitest" 
+
+- Assim basta rodar npm run test ou npm test que já vai rodar o teste.
