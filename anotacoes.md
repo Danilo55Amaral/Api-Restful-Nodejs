@@ -1330,3 +1330,56 @@ dentro de uma categoria.
 
 - A função it faz a mesma coisa que a função test. 
 
+# Testando listagem de transações 
+
+- Escrevi o teste para listar as transações, porém para fazer esse teste é necessário
+ter a sessionId que deve ser enviado nos cookies porém esse sessionId é criado no 
+momento em que a transação é criada, eu poderia fazer isso a partir do teste anterior 
+porém jamais pode ser escrito um teste que depende de outro. 
+
+- Eu devo criar um teste partindo do princípio de que os outros testes não existem.
+
+- Para conseguir fazer esse teste eu devo escrever novamente o post do teste anterior 
+dentro desse, para criar uma transação na hora do teste, isso por que para listar 
+alguma transação é obrigatório ter cadastrado uma transação antes, em seguida eu 
+crio uma constante que acessa meus cookies através de Set-Cookie,  em seguida eu 
+fiz uma nova requisição para o servidor para a rota get de listagem, utilizo também
+o set que é utilizado para setar uma informação da requisição um cabeçalho e aqui
+passamos o cabeçalho de cookie com os cookies, em seguida eu utilizo o expect 
+passando 200 que é o  que eu espero desse teste.
+
+- Eu armazenei essa requisição em uma variavel que chame de listTransactionsResponse 
+isso para poder validar se o corpo da requisição está retornando os dados que eu 
+espero que retorne, para fazer isso ==> eu espero que o corpo da minha listagem de 
+transações seja igual a um array e dentro desse array eu espero que exista um objeto 
+contendo objectContaining e eu passo as informações que eu quero. 
+
+- Se eu rodar dessa forma o teste não passa por que ele espera retornar um objeto 
+antes do array para resolver isso eu passo também no expect transactions.
+
+ test('should be able to list all transactions', async () => {
+        const createTransactionResponse = await request(app.server)
+        .post('/transactions')
+        .send({
+            title: 'New transaction',
+            amount: 5000,
+            type: 'credit',
+        })
+
+        const cookies = createTransactionResponse.get('Set-Cookie')
+
+        const listTransactionsResponse = await request(app.server)
+            .get('/transactions')
+            .set('Cookie', cookies)
+            .expect(200) 
+
+        expect(listTransactionsResponse.body.transactions).toEqual([
+            expect.objectContaining({
+                title: 'New transaction',
+                amount: 5000,
+            })
+        ])
+    })
+
+
+
