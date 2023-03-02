@@ -1314,5 +1314,19 @@ afterAll(async () => {
 
 - Após salvar esse código o meu teste automaticamente vai passar. 
 
+# Categorizando os testes 
 
+- Podemos separar os testes por categoria dentro de arquivos separados, no 
+teste que foi feito testamos rotas das transações  por isso  criamos uma 
+categoria especifica para ele. 
+
+- Eu importei de dentro do vitest o describe que é uma forma de categorizar 
+eu chamo o describe() passando o nome da categoria que eu quero criar 
+e depois eu passo uma função com meus testes. 
+
+- Note que ao fazer isso se um teste falhar ele irá informar qual categoria 
+e qual teste falhou. Também é possivel criar subcategorias criando categorias 
+dentro de uma categoria.
+
+- A função it faz a mesma coisa que a função test. 
 
