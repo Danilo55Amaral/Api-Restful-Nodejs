@@ -1381,5 +1381,64 @@ antes do array para resolver isso eu passo também no expect transactions.
         ])
     })
 
+# Configurando banco de testes 
+
+- Pode ser um pouco problempatico em algumas situações rodar os testes em ambiente 
+com informações, pode haver algum conflito de informações dependendo do teste, 
+o ideal é rodar os testes em uma ambiente zarado e isso serve tbm para o banco de 
+dados. 
+
+- Eu criei na raiz da aplicação um arquivo chamado .env.test esse arquivo também foi 
+adicionado ao .gitignore, dentro desse novo arquivo env eu vou colocar variavéis de 
+ambientes que só quero que sejam chamadas em ambiente de testes, e vou colocar as 
+mesmas variaveis do primeiro arquivo env porém vou modificar para teste.
+
+NODE_ENV=test
+DATABASE_URL="./db/test.db"
+
+- como os arquivos que estão em gitignore não sobem ao repositorio do github eu 
+criei tambémum arquivo .env.test.example com um exemplo para a pessoa pegar. 
+
+NODE_ENV=development
+DATABASE_URL="./db/app.db"
+
+- Dentro de src na pasta env no arquivo index, eu  possuo o import import 'dotenv/
+config'; sempre vai carregar exclusivamente o arquivo .env porém é possivel que de
+dentro de dotenv importar o config 
+
+- A variavel NODE_ENV quando estamos executando alguma ferramenta de testes como 
+i Vitest ela é preenchida automaticamente, e por isso eu posso tirar ela do meu 
+arquivo .env.test 
+
+- Com isso eu posso fazer o seguinte teste se o NODE_ENV for igual a test eu executo 
+o metodo config passando para ele que no nome do arquivo o path que contém as 
+variaveis de ambiente da aplicação é nesse caso o .env.test se não  eu executo o 
+config sem passar nenhuma opção ou seja ele irá executar o arquivo .env normal
+
+import { config } from 'dotenv';
+
+if (process.env.NODE_ENV == 'test') {
+    config({ path: '.env.test'})
+} else {
+    config()
+}
+
+- Eu possuo dois arquivos de variaveis de ambiente diferentes para cada tipo de 
+contexto utilizado, desenvolvimento, testes, produção. 
+
+- Note que ao rodar novamente os testes ele já vai criar um novo arquivo no meu banco 
+chamado test.db isso significa que ele criou um banco de dados separado para testes.
+
+- Note que ao executar os testes o teste vai falhar apontando que a tabela 
+transactions não existe, isso acontece por que criamos o banco mas a tabela
+é criada a partir dos migrations, por isso como foi criado umnovo banco de 
+testes as migrations não foram executadas nesse banco de testes. 
+
+- Para resolver isso vamos dentro de testes, utilizamos um beforeEach para que
+antes de cada um dos testes, eu importei uma função de dentro de node:child_process 
+chamada execSync apartir dessa função da para executar comandos no terminal, por 
+dentro da aplicação node, vou escrever um comando para zerar as migrations e outro 
+para rodar novamente as migrations, assim toda vez que eu rodar os testes vou ter
+um banco zerado, ou seja com isso a cada teste o banco é apagado e criado novamente.
 
 
