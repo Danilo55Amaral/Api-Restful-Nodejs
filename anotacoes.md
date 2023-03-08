@@ -1524,4 +1524,49 @@ test('should be able to get the summary', async () => {
         })
     })
 
-    
+# Preparando a app para deploy 
+
+- Aqui configuramos o projeto para fazer o processo de deploy, existem muitas 
+arquiteturas de deploy, nada mais são do que formas de subir o projeto para 
+produção, aqui utilizamos uma forma de deploy bem simples que é um serviço 
+gerenciado, é um tipo de serviço que automatiza mais as coisas.
+
+- O primeiro passo é endende que o código está em TypeScript, nunhuma plataforma 
+de deploy em node vai entender codigos Ts, por isso é importante antes do deploy 
+converter o código para JavaScript. 
+
+- Quando utilizamos o tsc como fizemos nesse projeto, dá para usa-lo para fazer a
+compilação desse código para Js, dentro das configurações do tsconfig.json na 
+opção "rootDir" passamos o diretorio em que está o código, e na opção "outDir" 
+que é a opção onde vai sair o código compilado eu coloco ./build , após isso eu 
+rodo o comando npx tsc ele irá rodar o compilador e vai criar a pasta buid com todo
+o código compilado, porém esse processo é um pouco lento principalmente em grandes 
+bases de códigos, e existem outras ferramentas melhores para fazer a build do projeto.
+
+## Build
+
+- Eu instaleu uma ferramenta chamada tsup rodando o comando abaixo 
+    npm i tsup -D  
+
+    https://tsup.egoist.dev
+
+- Essa é mais uma ferramenta para trabalhar com TypeScript porém para fazer
+o processo de build do projeto, Assim como o tsx que estamos utilizando para
+executar o código e o vitest que estamos executando os testes, o tsup utiliza 
+por debaixo dos panos o esbuild assim como essas outras ferramentas. 
+
+- No arquivo package.json eu criei um script que chamei de build e ele irá executar 
+tsup na pasta src  ==>   "build": "tsup src"  
+
+- Em seguida executo a build rodando npm run build 
+
+- Note que ele gerou a build muito rapido e criou a pasta dist que tem todo o 
+código da aplicação compilado, para escolher o nome da pasta que ele gera 
+basta dentro do nosso script utilizar --out-dir nome-da-pasta. 
+    "build": "tsup src --out-dir build"
+
+- Posso fazer um teste rodando o arquivo server da minha build utilizando o comando 
+node build/server.js 
+Se o servidor rodar normalmente é por que está tudo certo com am build. 
+
+- A pasta build te que ir no gitignore 
