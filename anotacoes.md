@@ -1441,4 +1441,87 @@ dentro da aplicação node, vou escrever um comando para zerar as migrations e o
 para rodar novamente as migrations, assim toda vez que eu rodar os testes vou ter
 um banco zerado, ou seja com isso a cada teste o banco é apagado e criado novamente.
 
+# Finalizando testes da aplicação
 
+- Aqui testamos as outras rotas da aplicação as outras portas de entrada, aqui quando
+buscamos alguma transação especifica, buscamos pelo id dela, aqui a única forma de 
+obter o id da transação é pela listagem, eu pego listTransactionsResponse pegando do
+body e primeira transação pegando o id dela, vou armazenar isso em  transactionId
+
+const transactionId = listTransactionsResponse.body.transactions[0].id
+
+- Abaixo disso foi feita uma nova requisição na qual chamei de getTransactionResponse
+no get eu fiz uma interpolação passando também o transactionId, em seguida eu espero 
+que getTransactionResponse pegando o body e transaction e não utilizei array nesse 
+espect por que ele vai retornar diratemente um objeto.
+
+test('should be able to get a specific transaction', async () => {
+        const createTransactionResponse = await request(app.server)
+        .post('/transactions')
+        .send({
+            title: 'New transaction',
+            amount: 5000,
+            type: 'credit',
+        })
+
+        const cookies = createTransactionResponse.get('Set-Cookie')
+
+        const listTransactionsResponse = await request(app.server)
+            .get('/transactions')
+            .set('Cookie', cookies)
+            .expect(200) 
+
+        const transactionId = listTransactionsResponse.body.transactions[0].id
+
+        const getTransactionResponse = await request(app.server)
+        .get(`/transactions/${transactionId}`)
+        .set('Cookie', cookies)
+        .expect(200) 
+
+        expect(getTransactionResponse.body.transaction).toEqual(
+            expect.objectContaining({
+                title: 'New transaction',
+                amount: 5000,
+            })
+        )
+    })
+
+
+- O Ultimo teste testamos a rota de resumo, criamos duas transaçães, copiei a 
+primeira e utilizei também o Cookie, a segunda chamei de Debit transaction, 
+com isso eu tenho a transação de credito e debito nesse teste, podemos verificar 
+se o resumo está resumindo da forma correta, eu crio o summaryResponse e dentro 
+do expect vou setar sumary, o meu toEqual espero que seja amount: 3000 que é o 
+valor que esepro do meu calculo.
+
+test('should be able to get the summary', async () => {
+        const createTransactionResponse = await request(app.server)
+            .post('/transactions')
+            .send({
+                title: 'New transaction',
+                amount: 5000,
+                type: 'credit',
+            })
+
+        const cookies = createTransactionResponse.get('Set-Cookie')
+
+        await request(app.server)
+            .post('/transactions')
+            .set('Cookie', cookies)
+            .send({
+                title: 'Debit transaction',
+                amount: 2000,
+                type: 'credit',
+            })
+
+        const summaryResponse = await request(app.server)
+            .get('/transactions/summary')
+            .set('Cookie', cookies)
+            .expect(200)
+
+        expect(summaryResponse.body.summary).toEqual({
+            amount: 3000,
+        })
+    })
+
+    
