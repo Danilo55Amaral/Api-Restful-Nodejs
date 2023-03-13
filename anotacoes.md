@@ -1570,3 +1570,91 @@ node build/server.js
 Se o servidor rodar normalmente é por que está tudo certo com am build. 
 
 - A pasta build te que ir no gitignore 
+
+# Deploy do app no Render 
+
+- Temos algumas opções gratuitas para testar as aplicações back end algumas boas 
+opções são: 
+
+render.com  ==> muito interessante, com um bom painel de administração, serve para 
+deploy desde sites staticos, web services, aplicações que rodam sem segundo plano,
+bancos de dados, serviços privados. 
+
+fly.io ==> Também interessante, da para hospedar varios tipos de aplicações e varias 
+linguagens. 
+
+railway.app ==> Também interessante 
+
+- No projeto utilizamos o render para fazer a hospedagem. 
+
+- Primeiro passo é criar uma conta 
+
+- O segundo passo é criar o banco de dados na aplicação utilizamos um query builder 
+e isso já facilita a criação do banco de dados no deploy, com isso a aplicação deve
+funcionar com outros tipos de bancos, no render é utilizado o PostgreSQL como a 
+maior perte dos serviços de hospedagem.
+
+- Para que o deploy possa ser feito é necessário fazer algumas alterações na 
+aplicação, a aplicação precisa suportar o sqlite e o Postgres e para isso foi 
+criada dentro do index na pasta env uma nova variavel de ambiente, eu passar 
+uma variavel DATABASE_CLIENT passando um enum informando que pode ser tanto sqlite 
+quando pg de postgres: 
+
+const envSchema = z.object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('production'),
+    DATABASE_CLIENT: z.enum(['sqlite', 'pg']),
+    DATABASE_URL: z.string(),
+    PORT: z.number().default(3333),
+})
+
+- Agora que a aplicação aceita o pg eu posso instalar os drivers desse banco sem ser
+como dependencia de desenvolvimento pois ele vai para produção.
+        npm i pg 
+
+- No arquivo .env foi colocada a variável de ambiente   DATABASE_CLIENT=sqlite  
+também foi adicionado em todos os arquivos env
+
+- Dentro de database.ts eu vou trocar o client por DATABASE_CLIENT, na parte de 
+connection eu vou passar que se o DATABASE_CLIENT for igual ao sqlite vai ser 
+passado um objeto com filename DATABASE_URL, se não , se for postgress vai ser
+passado direto DATABASE_URL 
+
+export const config: Knex.Config = {
+    client: env.DATABASE_CLIENT,
+    connection: 
+        env.DATABASE_CLIENT == 'sqlite'
+            ? {
+                filename: env.DATABASE_URL,
+               }
+            : env.DATABASE_URL,
+    useNullAsDefault: true,
+    migrations: {
+        extension: 'ts',
+        directory: './db/migrations',
+    }
+}
+
+PS- Por padrão o render utiliza a versão 14 do node porém essa versão é antiga pois 
+no projeto utilizamos a versão 18 do node, por isso um padrão que existe na comunidade
+é dentro de package.json passar "engines" e passando node informando qual versão 
+do node quero utilizar, aqui informei maior ou igual a 18 >= 18 com isso ele vai usar 
+todas as vesões que são iguais ou maiores a versão 18 do node.
+
+ "engines": {
+    "node": ">=18"
+  },
+
+- O ultimo detalhe na aplicação antes de ser enviada é na porta é que o render 
+envia a port para rodar a aplicação como string e não como número, vai gerar um 
+erro por que dentro de env estamos pedindo para que a porta seja um número, para
+resolver esse problema utilizamos uma funcionalidade bem interessante do zod que é 
+o coerce isso faz com que independente do tipo do valor que for recebido na porta 
+ele vai ser transformado em um número, o coerce faz uma convenção para um número.
+
+const envSchema = z.object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('production'),
+    DATABASE_CLIENT: z.enum(['sqlite', 'pg']),
+    DATABASE_URL: z.string(),
+    PORT: z.coerce.number().default(3333),
+})
+
