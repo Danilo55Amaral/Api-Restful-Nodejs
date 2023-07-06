@@ -41,6 +41,7 @@ são utilizados no dia a dia em aplicações como essa.
 - preHandler
 - Build 
 - Deploy
+- Clean Code
 
 ## Para Rodar o Projeto 
 - Para rodar o projeto é necessário ter o nodejs instalado em sua máquina.
